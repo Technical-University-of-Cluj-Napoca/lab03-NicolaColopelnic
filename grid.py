@@ -1,23 +1,16 @@
 from utils import *
 from spot import Spot
+import pygame
 
 class Grid:
-    def __init__(self, win: pygame.Surface, rows: int, cols: int, width: int, height: int):
-        """
-        Initialize a grid with the given number of rows and columns, of the width and height of the window.
-        Args:
-            win (pygame.Surface): The Pygame surface (window) where the grid will be drawn.
-            rows (int): Number of rows in the grid.
-            cols (int): Number of columns in the grid.
-            width (int): Width of the window in pixels.
-            height (int): Height of the window in pixels.
-        """
-        self.win: pygame.Surface = win
-        self.rows: int = rows
-        self.cols: int = cols
-        self.width: int = width
-        self.height: int = height
-        self.grid: list[list[Spot]] = self._make_grid()
+    def __init__(self, win, rows, cols, width, height, offset_x=0):
+        self.win = win
+        self.rows = rows
+        self.cols = cols
+        self.width = width
+        self.height = height
+        self.offset_x = offset_x
+        self.grid = self._make_grid()
 
     def _make_grid(self) -> list[list[Spot]]:
         """
@@ -26,8 +19,8 @@ class Grid:
             list[list[Spot]]: A 2D list (matrix) representing the grid of Spot objects.
         """
         grid = []
-        spot_width = self.width // self.rows  # width of each spot
-        spot_height = self.height // self.cols  # height of each spot
+        spot_width = self.width // self.cols
+        spot_height = self.height // self.rows
         for i in range(self.rows):
             grid.append([])
             for j in range(self.cols):
@@ -41,50 +34,56 @@ class Grid:
         Returns:
             None
         """
-        spot_width = self.width // self.rows  # gap between lines
-        spot_height = self.height // self.cols  # gap between lines
-        for i in range(self.rows):
-            # draw horizontal lines
-            pygame.draw.line(self.win, COLORS['GREY'], (0, i * spot_height), (self.width, i * spot_height))
-        for j in range(self.cols):
-            # draw vertical lines
-            pygame.draw.line(self.win, COLORS['GREY'], (j * spot_width, 0), (j * spot_width, self.height))
-
-    def draw(self) -> None:
-        """
-        Draw the entire grid and its spots on the Pygame window.
-        Returns:
-            None
-        """
-        self.win.fill(COLORS['WHITE'])  # fill the window with white color
-
-        for row in self.grid:
-            for spot in row:
-                spot.draw(self.win)   # draw each spot
-
-        self.draw_grid_lines()        # draw the grid lines          
-        pygame.display.update()       # update the display
-
-    def get_clicked_pos(self, pos: tuple[int, int]) -> tuple[int, int]:
-        """
-        Get the row and column of the grid based on the mouse position.
-        Args:
-            pos (tuple[int, int]): The (x, y) position of the mouse click.
-        Returns:
-            tuple[int, int]: The (row, col) position of the clicked spot in the grid.
-        """
         spot_width = self.width // self.cols
         spot_height = self.height // self.rows
+
+        for i in range(self.rows):
+            pygame.draw.line(
+                self.win,
+                COLORS['GREY'],
+                (self.offset_x, i * spot_height),
+                (self.offset_x + self.width, i * spot_height)
+            )
+
+        for j in range(self.cols):
+            pygame.draw.line(
+                self.win,
+                COLORS['GREY'],
+                (self.offset_x + j * spot_width, 0),
+                (self.offset_x + j * spot_width, self.height)
+            )
+
+    def draw(self):
+        """
+        Draw the grid spots and the grid lines.
+        """
+        for row in self.grid:
+            for spot in row:
+                spot.draw(self.win, self.offset_x)
+        self.draw_grid_lines()
+        pygame.display.update()
+
+    def get_clicked_pos(self, pos: tuple[int, int]) -> tuple[int, int] | None:
+        """
+        Get the (row, col) of the grid based on mouse click position.
+        Returns None if click is outside the grid.
+        """
         x, y = pos
-        col = x // spot_width
-        row = y // spot_height
-        return col, row
-    
+        x -= self.offset_x
+
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            return None
+
+        spot_width = self.width // self.cols
+        spot_height = self.height // self.rows
+
+        col = y // spot_width
+        row = x // spot_height
+        return row, col
+
     def reset(self) -> None:
         """
         Reset the grid to its initial state.
-        Returns:
-            None
         """
         for row in self.grid:
             for spot in row:

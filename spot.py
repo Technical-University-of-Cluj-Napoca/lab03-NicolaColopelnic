@@ -12,20 +12,16 @@ class Spot:
             height (int): The height of the spot.
             total_rows (int): Keeps track of the total number of rows in the grid (while avoiding global variables).
         """
-        # a square has a position in the grid (row, col) and a position in the window (x, y)
         self.row: int = row
         self.col: int = col
-        # a square has also a width and a height
-        # the coordinates (x, y) are calculated based on the place inside the grid and its size.
         self.width: int = width
         self.height: int = height
         self.x: int = row * width
         self.y: int = col * height
-        self.color: tuple = COLORS["WHITE"]  # default color is white
+        self.color: tuple = COLORS["WHITE"]
         self.neighbors: list = []
         self.total_rows: int = total_rows
 
-    # ---- Methods to change the state of the spot (i.e., its setters) ----
     def get_position(self) -> tuple[int, int]:
         """
         Gets the (row, col) position of the spot in the grid.
@@ -74,7 +70,6 @@ class Spot:
         """
         return self.color == COLORS['TURQUOISE']
 
-    # ---- Methods to change the state of the spot (i.e., its setters) ----
     def reset(self) -> None:
         """
         Change the color of the spot back to white (unvisited).
@@ -131,9 +126,6 @@ class Spot:
         """
         self.color = COLORS['PURPLE']
 
-    # --- Operators ---
-    # "Spot" type is not yet defined because the class will be defined at runtime and will exist only after it is closed (the whole class).
-    # So we use quotes to tell the type checker that this is a string, containing the name of a type that will exist later.
     def __lt__(self, other: "Spot") -> bool:
         """
         Less-than operator for comparing two spots. The other spot is always "greater" than this one.
@@ -141,15 +133,9 @@ class Spot:
         """
         return False
     
-    # --- Other Methods ---
-    def draw(self, win: pygame.Surface) -> None:
-        """
-        Draw the spot on the given Pygame surface (window).
-        Args:
-            win (pygame.Surface): The Pygame surface (window) where the spot will be drawn.
-        """
-        # draw a rectangle at (x, y) with size (width, width) and color self.color
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
+    def draw(self, win, offset_x=0):
+        pygame.draw.rect(win, self.color,
+                         (self.x + offset_x, self.y, self.width, self.width))
 
     def update_neighbors(self, grid: list[list["Spot"]]) -> None:
         """
